@@ -146,7 +146,7 @@ app.post('/api/user-info', authenticateToken, async (req, res) => {
     const { user, pulse, temperature } = req.body;
   
     if (!user || !pulse || !temperature) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Missing required fields', receivedData: req.body });
     }
   
     try {
@@ -158,9 +158,14 @@ app.post('/api/user-info', authenticateToken, async (req, res) => {
   
       await newStressData.save();
       res.status(201).json(newStressData);
-    } catch (error) {
-      console.error('Error saving stress data:', error);
-      res.status(500).json({ error: 'Failed to save stress data' });
+    } catch (error: unknown) { // Explicitly typing error as unknown
+      if (error instanceof Error) { // Type guard to check if error is an instance of Error
+        console.error('Error saving stress data:', error.message); // Log the error message
+        res.status(500).json({ error: 'Failed to save stress data', details: error.message });
+      } else {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ error: 'Failed to save stress data', details: 'An unexpected error occurred' });
+      }
     }
   });
   

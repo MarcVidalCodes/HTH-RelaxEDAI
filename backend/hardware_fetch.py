@@ -1,31 +1,80 @@
 import serial
 import pymongo
 import time
+import requests  # To make HTTP requests
 from pymongo import MongoClient
 from datetime import datetime
+from dotenv import load_dotenv, find_dotenv
+import os
 
-# mongodb setup
+# Load environment variables from .env file
+env_file_path = find_dotenv()
+if not env_file_path:
+    print(f"Error: .env file not found")
+else:
+    load_dotenv(env_file_path)
+    print(f".env file loaded from: {env_file_path}")
+
+# Get the access token and user ID from the environment
+access_token = os.getenv('ACCESS_TOKEN')
+user_id = os.getenv('USER_ID')
+
+if not access_token or not user_id:
+    print("Access token or user ID is not available. Skipping server request.")
+
+# MongoDB setup
 mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client["Data"]
 collection = db["Collection1"]
 
-port = 'COM6' # will probably change every time idk just check device manager
+port = 'COM6'  # Will probably change every time idk just check device manager
+baud_rate = 9600  # ESP32 baud rate (check terminal logs)
 
-baud_rate = 9600 # esp32 baud rate (check terminal logs)
-
-# sends data to mongodb
+# Sends data to MongoDB
 def send_data_to_mongo(data):
-    # define the document to be inserted
+    # Define the document to be inserted
     document = {
         "id": data.get("id"),
         "time": data.get("time", str(datetime.now())),  # Capture current time if not provided
         "pulse": data.get("pulse"),
         "temperature": data.get("temperature")
     }
-    # insert document into db
+    
+    # Insert document into DB
     result = collection.insert_one(document)
     print(f"Inserted document ID: {result.inserted_id}")
 
+    # Optionally send data to your server with the access token and user ID
+    if access_token and user_id:
+        send_data_to_server(data)
+
+def send_data_to_server(data):
+    url = 'http://localhost:5001/api/stress-data'  # Replace with your actual endpoint
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    # Prepare the payload
+    payload = {
+        "user": user_id,  # Use user ID from the .env file
+        "pulse": data.get("pulse"),
+        "temperature": data.get("temperature"),
+    }
+    
+    print(f"Sending data to server: {payload}")  # Print payload for debugging
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        print(f"Response status code: {response.status_code}")  # Log response status code
+        print(f"Response content: {response.content}")  # Log response content for debugging
+        
+        if response.status_code == 201:
+            print("Data sent to server successfully.")
+        else:
+            print(f"Failed to send data to server: {response.status_code} - {response.text}")
+
+    except Exception as e:
+        print(f"Exception occurred while sending data to server: {e}")
 try:
     # establish the serial connection
     ser = serial.Serial(port, baud_rate, timeout=1)
