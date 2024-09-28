@@ -1,33 +1,20 @@
-import { useState } from 'react';
-import StressList from './components/StressList'; // Import StressList
-import Chatbot from './components/Chatbot'; // Import Chatbot
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Home from './screens/Home';
+import Login from './screens/Login';
+import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 
-function App() {
-  const [selectedStress, setSelectedStress] = useState<string | null>(null);
-
-  // Function to handle stress selection from StressList
-  const handleSelectStress = (stress: string) => {
-    setSelectedStress(stress); // Update selected stress instance
-  };
-
+const App: React.FC = () => {
   return (
-    <div style={styles.appContainer}>
-      {/* Render StressList and pass the handler */}
-      <StressList onSelectStress={handleSelectStress} />
-
-      {/* Render Chatbot and pass the selected stress */}
-      <Chatbot selectedStress={selectedStress} />
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<Home />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
-}
-
-// Inline styles
-const styles = {
-  appContainer: {
-    display: 'flex',
-    height: '100vh',
-    overflow: 'hidden',
-  },
 };
 
 export default App;

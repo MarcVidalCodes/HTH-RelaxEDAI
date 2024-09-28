@@ -63,12 +63,6 @@ interface IUserAccount extends Document {
   
   export { UserAccount, UserInfo };
 
-// Simulated stress data (replacing stress data)
-const stressData = [
-  { id: 1, temperature: "36", pulse: "72" },
-  { id: 2, temperature: "37", pulse: "78" },
-  { id: 3, temperature: "36", pulse: "70" }
-];
 
 // Middleware for authentication
 const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -145,6 +139,40 @@ app.post('/api/user-info', authenticateToken, async (req, res) => {
       res.status(201).json({ message: 'User information added successfully' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to add user information' });
+    }
+  });
+
+  app.post('/api/stress-data', authenticateToken, async (req, res) => {
+    const { user, pulse, temperature } = req.body;
+  
+    if (!user || !pulse || !temperature) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+  
+    try {
+      const newStressData = new UserInfo({
+        user,
+        pulse,
+        temperature
+      });
+  
+      await newStressData.save();
+      res.status(201).json(newStressData);
+    } catch (error) {
+      console.error('Error saving stress data:', error);
+      res.status(500).json({ error: 'Failed to save stress data' });
+    }
+  });
+  
+  // Existing endpoint to fetch stress data
+  app.get('/api/stress-data', authenticateToken, async (req, res) => {
+    const userId = req.body.userId; // Ensure userId is properly set
+  
+    try {
+      const stressData = await UserInfo.find({ user: userId }); // Fetch stress data for the user
+      res.status(200).json(stressData);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch stress data' });
     }
   });
 
