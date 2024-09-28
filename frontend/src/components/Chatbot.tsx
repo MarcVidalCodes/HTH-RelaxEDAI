@@ -91,24 +91,28 @@ const styles = {
   chatContainer: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
+    marginTop: '35px',
+    width: '100%',
+    height: '90%',
     justifyContent: 'space-between',
   },
   chatMessages: {
     flex: 1,
     overflowY: 'auto',
+    marginLeft: '30px',
     marginBottom: '10px',
     padding: '10px',
   },
   userMessage: {
     display: 'flex',
+    marginRight: '30px',
     justifyContent: 'flex-end',
-    marginBottom: '15px',
+    marginBottom: '25px',
   },
   botMessage: {
     display: 'flex',
     justifyContent: 'flex-start',
-    marginBottom: '15px',
+    marginBottom: '25px',
   },
   messageContent: {
     backgroundColor: '#E2BFD9',

@@ -1,11 +1,11 @@
 import React from 'react';
 import StressInstance from './StressInstance';
-//import logo from '../assets/logo.png'; WILL ADD LOGO LATER
+import logo from '../assets/logo.png';
 
 const StressList: React.FC<{ onSelectStress: (stress: string) => void }> = ({ onSelectStress }) => {
   return (
     <div style={styles.container}>
-      {/* <img src={logo} alt="Logo" style={styles.logo} /> */}
+      {<img src={logo} alt="Logo" style={styles.logo} /> }
       <StressInstance onSelectStress={onSelectStress} />
       
       <div style={styles.logoutContainer}>
