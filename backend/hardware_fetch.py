@@ -1,12 +1,30 @@
 import serial
+import pymongo
 import time
+from pymongo import MongoClient
 from datetime import datetime
 
+# mongodb setup
+mongo_client = MongoClient("mongodb://localhost:27017/")
+db = mongo_client["Data"]
+collection = db["Collection1"]
 
 port = 'COM6' # will probably change every time idk just check device manager
 
 baud_rate = 9600 # esp32 baud rate (check terminal logs)
 
+# sends data to mongodb
+def send_data_to_mongo(data):
+    # define the document to be inserted
+    document = {
+        "id": data.get("id"),
+        "time": data.get("time", str(datetime.now())),  # Capture current time if not provided
+        "pulse": data.get("pulse"),
+        "temperature": data.get("temperature")
+    }
+    # insert document into db
+    result = collection.insert_one(document)
+    print(f"Inserted document ID: {result.inserted_id}")
 
 try:
     # establish the serial connection
@@ -40,6 +58,7 @@ try:
                     }
                     print(f"Received data: {data_to_send}")
 
+                    send_data_to_mongo(data_to_send)
 
         except KeyboardInterrupt:
             print("Exiting")
