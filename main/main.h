@@ -21,10 +21,6 @@
 #include "esp_bt_device.h"
 #include "esp_spp_api.h"
 
-/* max30102 header files */
-// #include "driver/i2c_master.h"
-// #include "max30102.h
-
 /* dht22 header files */
 #include "dht22.h"
 
@@ -43,6 +39,9 @@ extern uint32_t bt_handle;
 extern TaskHandle_t dht22_task;
 extern TaskHandle_t send_task;
 extern TaskHandle_t get_pulse_task;
+
+extern QueueHandle_t temp_queue;
+extern QueueHandle_t pulse_queue;
 
 /**
  * Initializes Bluetooth
