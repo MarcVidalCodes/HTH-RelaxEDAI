@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa'; // Icons for user and bot
 
 type Message = {
@@ -6,9 +6,21 @@ type Message = {
   sender: 'user' | 'bot';
 };
 
-const StressChatbot: React.FC = () => {
+const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress }) => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+
+  // Adding initial 4 bot messages directly into the chat
+  useEffect(() => {
+    const initialBotMessages = [
+      { text: `Here are your stress metrics:`, sender: 'bot' },
+      { text: `Temperature: 36°C`, sender: 'bot' }, // Hardcoded fall data
+      { text: `Pulse: 72 bpm`, sender: 'bot' }, // Hardcoded fall data
+      { text: `Ask me questions or give me further information, and I can assist you further!`, sender: 'bot' },
+    ];
+
+    setMessages(initialBotMessages); // Add these bot messages to the chat
+  }, []);
 
   const handleSend = () => {
     if (inputText.trim()) {
@@ -49,6 +61,7 @@ const StressChatbot: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.chatContainer}>
         <div id="chat-container" style={styles.chatMessages}>
+          {/* Display all messages */}
           {messages.map((message, index) => (
             <MessageBubble key={index} text={message.text} sender={message.sender} />
           ))}
@@ -78,34 +91,25 @@ const StressChatbot: React.FC = () => {
 const styles = {
   container: {
     backgroundColor: '#212121',
-    width: '75%',
-    padding: '20px',
-    overflowY: 'auto',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    margin: '0 auto',
+    width: '100%', // Make it take full width
     height: '100vh',
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center', // Center the chat container horizontally
   },
   chatContainer: {
     display: 'flex',
     flexDirection: 'column',
-    marginTop: '35px',
-    width: '100%',
-    height: '90%',
+    width: '75%', // Adjust width for the main chat
+    height: '100%',
     justifyContent: 'space-between',
   },
   chatMessages: {
     flex: 1,
     overflowY: 'auto',
-    marginLeft: '30px',
-    marginBottom: '10px',
     padding: '10px',
   },
   userMessage: {
     display: 'flex',
-    marginRight: '30px',
     justifyContent: 'flex-end',
     marginBottom: '25px',
   },
