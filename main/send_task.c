@@ -17,6 +17,6 @@ void send_task_handler(void *parameters){
             data[i]++;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        vTaskDelay(pdMS_TO_TICKS(60000));
     }
 }
