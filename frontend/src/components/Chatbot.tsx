@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa'; // Icons for user and bot
+import SuggestedQuestions from './SuggestedQuestions';
 
 type Message = {
   text: string;
@@ -9,35 +10,77 @@ type Message = {
 const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress }) => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Adding initial 4 bot messages directly into the chat
   useEffect(() => {
-    const initialBotMessages = [
-      { text: `Here are your stress metrics:`, sender: 'bot' },
-      { text: `Temperature: 36°C`, sender: 'bot' }, // Hardcoded fall data
-      { text: `Pulse: 72 bpm`, sender: 'bot' }, // Hardcoded fall data
-      { text: `Ask me questions or give me further information, and I can assist you further!`, sender: 'bot' },
-    ];
+    if (selectedStress && selectedStress !== "Suggested Questions") {
+      try {
+        const stress = JSON.parse(selectedStress);
+        const messagesArray = [
+          { text: `Here are your stress metrics:`, sender: 'bot' },
+          { text: `Temperature: ${stress.temperature}`, sender: 'bot' },
+          { text: `Pulse: ${stress.pulse}`, sender: 'bot' },
+          { text: `Ask me questions or give me further information, and I can assist you further!`, sender: 'bot' },
+        ];
+        setMessages(messagesArray);
+      } catch (error) {
+        console.error('Error parsing selectedStress:', error);
+        setMessages([{ text: 'There was an error processing your stress data.', sender: 'bot' }]);
+      }
+    }
+  }, [selectedStress]);
 
-    setMessages(initialBotMessages); // Add these bot messages to the chat
-  }, []);
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputText.trim()) {
-      const userMessage = { text: inputText, sender: 'user' };
-      const botReply = { text: `Reply to ${inputText}`, sender: 'bot' };
-      
-      setMessages((prevMessages) => [...prevMessages, userMessage, botReply]);
-      setInputText(''); // Clear input after sending
+      const userMessage: Message = { text: inputText, sender: 'user' };
+      setMessages((prevMessages) => [...prevMessages, userMessage]);
+      setInputText('');
+      setLoading(true); 
+
+      try {
+        const botMessage: Message = { text: `Response to ${inputText}`, sender: 'bot' };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      } catch (error) {
+        console.error('Error processing request:', error);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { text: 'There was an error processing your request.', sender: 'bot' }
+        ]);
+      } finally {
+        setLoading(false); 
+      }
+      const chatContainer = document.getElementById('chat-container');
+      if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSend(); // Send message on Enter key press
+      handleSend(); 
     }
   };
 
+  const handleQuestionClick = async (question: string) => {
+    const userMessage: Message = { text: question, sender: 'user' };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setLoading(true); 
+
+    try {
+      const botMessage: Message = { text: `Response to ${question}`, sender: 'bot' };
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+    } catch (error) {
+      console.error('Error processing request:', error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { text: 'There was an error processing your request.', sender: 'bot' }
+      ]);
+    } finally {
+      setLoading(false); 
+    }
+  };
+  
   const MessageBubble: React.FC<{ text: string; sender: 'user' | 'bot' }> = ({ text, sender }) => {
     const isUser = sender === 'user';
     return (
@@ -61,11 +104,12 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
     <div style={styles.container}>
       <div style={styles.chatContainer}>
         <div id="chat-container" style={styles.chatMessages}>
-          {/* Display all messages */}
+          {}
           {messages.map((message, index) => (
             <MessageBubble key={index} text={message.text} sender={message.sender} />
           ))}
         </div>
+        <SuggestedQuestions onQuestionClick={handleQuestionClick} selectedStress={selectedStress} />
         <div style={styles.chatBar}>
           <input
             type="text"
@@ -91,21 +135,21 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
 const styles = {
   container: {
     backgroundColor: '#212121',
-    width: '100%', // Make it take full width
+    width: '100%', 
     height: '100vh',
     display: 'flex',
-    justifyContent: 'center', // Center the chat container horizontally
+    justifyContent: 'center', 
   },
   chatContainer: {
     display: 'flex',
-    flexDirection: 'column',
-    width: '75%', // Adjust width for the main chat
+    flexDirection: 'column' as const,
+    width: '75%', 
     height: '100%',
     justifyContent: 'space-between',
   },
   chatMessages: {
     flex: 1,
-    overflowY: 'auto',
+    overflowY: 'auto' as const,
     padding: '10px',
   },
   userMessage: {
@@ -123,7 +167,7 @@ const styles = {
     borderRadius: '10px',
     padding: '10px',
     maxWidth: '80%',
-    wordBreak: 'break-word',
+    wordBreak: 'break-word' as const,
     color: '#674188',
   },
   chatBar: {

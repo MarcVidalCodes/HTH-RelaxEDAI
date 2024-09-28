@@ -63,7 +63,7 @@ interface IUserAccount extends Document {
   
   export { UserAccount, UserInfo };
 
-// Simulated stress data (replacing fall data)
+// Simulated stress data (replacing stress data)
 const stressData = [
   { id: 1, temperature: "36", pulse: "72" },
   { id: 2, temperature: "37", pulse: "78" },
