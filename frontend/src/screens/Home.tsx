@@ -1,12 +1,12 @@
 import React, { useState, useContext, useEffect } from 'react';
 import StressList from '../components/StressList';
-import Chatbot from '../component/ChatBot';
+import Chatbot from '../components/Chatbot';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Home: React.FC = () => {
-  const [selectedFall, setSelectedFall] = useState<string | null>(null);
+  const [selectedStress, setSelectedStress] = useState<string | null>(null);
   const { isAuthenticated, logout, token } = useContext(AuthContext)!; // Get token from AuthContext
   const navigate = useNavigate();
 
@@ -33,8 +33,8 @@ const Home: React.FC = () => {
 
   return (
     <div style={styles.appContainer}>
-      <StressList onSelectFall={setSelectedFall} />
-      <Chatbot selectedFall={selectedFall || 'Select a fall to get started'} />
+      <StressList onSelectStress={setSelectedStress} />
+      <Chatbot selectedStress={selectedStress || 'Select a fall to get started'} />
     </div>
   );
 };
