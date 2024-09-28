@@ -184,7 +184,7 @@ async function callOpenAI(prompt: string) {
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: prompt }
       ],
-      model: 'gpt-3.5-turbo-0125:personal::ACVD0E5w', 
+      model: 'ft:gpt-3.5-turbo-0125:personal::ACVD0E5w', 
     });
 
     return completion.choices[0].message?.content || 'No response';
@@ -198,14 +198,16 @@ app.get('/api/stress-data', (req, res) => {
   res.json(stressData);
 });
 
-app.post('/api/analyze-stress', async (req, res) => {
-  const { stressData } = req.body;
 
-  if (!stressData) {
-    return res.status(400).json({ error: 'Stress data is required' });
+// Endpoint to analyze selected stress data
+app.post('/api/analyze-stress', authenticateToken, async (req, res) => {
+  const { stressData, question } = req.body;
+
+  if (!stressData || !question) {
+    return res.status(400).json({ error: 'Stress data and question are required' });
   }
 
-  const prompt = `You are using this stress data:\n${JSON.stringify(stressData, null, 2)} The user may ask questions or give you some more information regarding their stress metrics. Your task is to analyze the temperature and pulse values to help answer the user's questions. DO NOT just show the user the JSON format, but analyze each item in the JSON to provide meaningful insights.`;
+  const prompt = `You are using this stress data:\n${JSON.stringify(stressData, null, 2)}\n\nThe user has asked the following question: '${question}'. After answering the question, prompt the user to share some more info about their stress for further conversation`;
 
   try {
     const analysis = await callOpenAI(prompt);
