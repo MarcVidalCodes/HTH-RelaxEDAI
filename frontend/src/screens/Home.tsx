@@ -18,7 +18,7 @@ const Home: React.FC = () => {
     const fetchStressData = async () => {
       try {
         const response = await axios.get('http://localhost:5001/api/stress-data', {
-          headers: {
+          headers: {  
             Authorization: `Bearer ${token}`, // Add token to Authorization header
           },
         });
@@ -34,7 +34,7 @@ const Home: React.FC = () => {
   return (
     <div style={styles.appContainer}>
       <StressList onSelectStress={setSelectedStress} />
-      <Chatbot selectedStress={selectedStress || 'Select a fall to get started'} />
+      <Chatbot selectedStress={selectedStress || 'Select a stress to get started'} />
     </div>
   );
 };
