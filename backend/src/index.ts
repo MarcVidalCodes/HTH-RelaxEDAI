@@ -1,8 +1,13 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
-
+import { OpenAI } from 'openai'; 
+import { MongoClient, ServerApiVersion } from 'mongodb';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken'
+import mongoose, { Schema, Document } from 'mongoose';
+import path from 'path';
+import fs from 'fs';
 dotenv.config();
 
 const app = express();
@@ -17,12 +22,72 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '', // Ensure the API key is correctly loaded
 });
 
-// Simulated fall data
-const fallData = [
-  { id: 1, time: "14:30", speed: "3.5 meters per second", distance: "10 meters" },
-  { id: 2, time: "10:15", speed: "4.2 meters per second", distance: "12 meters" },
-  { id: 3, time: "18:00", speed: "3.0 meters per second", distance: "8 meters" }
+// MongoDB Client Configuration
+const uri = process.env.MONGO_URI || '';
+mongoose.connect(uri)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Failed to connect to MongoDB', err));
+
+  mongoose.connect(uri)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => console.error('Failed to connect to MongoDB', err));
+
+
+// User Account Schema
+interface IUserAccount extends Document {
+    email: string;
+    password: string;
+  }
+  
+  const UserAccountSchema: Schema = new Schema({
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
+  });
+  
+  const UserAccount = mongoose.model<IUserAccount>('UserAccount', UserAccountSchema);
+  
+  // User Information Schema
+  interface IUserInfo extends Document {
+    user: mongoose.Types.ObjectId;
+    pulse: number;
+    temperature: number;
+  }
+  
+  const UserInfoSchema: Schema = new Schema({
+    user: { type: mongoose.Types.ObjectId, ref: 'UserAccount', required: true },
+    pulse: { type: Number, required: true },
+    temperature: { type: Number, required: true }
+  });
+  
+  const UserInfo = mongoose.model<IUserInfo>('UserInfo', UserInfoSchema);
+  
+  export { UserAccount, UserInfo };
+
+// Simulated stress data (replacing fall data)
+const stressData = [
+  { id: 1, temperature: "36", pulse: "72" },
+  { id: 2, temperature: "37", pulse: "78" },
+  { id: 3, temperature: "36", pulse: "70" }
 ];
+
+// Endpoint for user registration
+app.post('/api/register', async (req, res) => {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+  
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    try {
+      const userAccount = new UserAccount({ email, password: hashedPassword });
+      await userAccount.save();
+      res.status(201).json({ message: 'User registered successfully', userId: userAccount._id });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to register user' });
+    }
+  });
 
 // Function to Call OpenAI API
 async function callOpenAI(prompt: string) {
@@ -42,32 +107,32 @@ async function callOpenAI(prompt: string) {
   }
 }
 
-app.get('/api/fall-data', (req, res) => {
-    res.json(fallData);
-  });
+// Endpoint to get the stress data
+app.get('/api/stress-data', (req, res) => {
+  res.json(stressData);
+});
 
-  
-// Endpoint to analyze selected fall data
-app.post('/api/analyze-fall', async (req, res) => {
-    const { fall } = req.body;
-  
-    if (!fall) {
-      return res.status(400).json({ error: 'Fall data is required' });
+// Endpoint to analyze selected stress data
+app.post('/api/analyze-stress', async (req, res) => {
+  const { stressData } = req.body;
+
+  if (!stressData) {
+    return res.status(400).json({ error: 'Stress data is required' });
+  }
+
+  const prompt = `You are using this stress data:\n${JSON.stringify(stressData, null, 2)} The user may ask questions or give you some more information regarding their stress metrics. Your task is to analyze the temperature and pulse values to help answer the user's questions. DO NOT just show the user the JSON format, but analyze each item in the JSON to provide meaningful insights.`;
+
+  try {
+    const analysis = await callOpenAI(prompt);
+    res.json({ analysis });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An unknown error occurred' });
     }
-  
-    const prompt = `You are using this data:\n${JSON.stringify(fall, null, 2)} The user may ask questions or give you some more information, on their fall, yoru task is to answer questions and help them. DO NOT just show the user the json format but analyze each item in the json to help answer the users questions`;
-  
-    try {
-      const analysis = await callOpenAI(prompt);
-      res.json({ analysis });
-    } catch (error) {
-      if (error instanceof Error) {
-        res.status(500).json({ error: error.message });
-      } else {
-        res.status(500).json({ error: 'An unknown error occurred' });
-      }
-    }
-  });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
