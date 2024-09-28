@@ -70,6 +70,27 @@ const stressData = [
   { id: 3, temperature: "36", pulse: "70" }
 ];
 
+// Middleware for authentication
+const authenticateToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+  
+    console.log('Token received:', token);  // Log the token to verify its structure
+  
+    if (token == null) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+  
+    jwt.verify(token, process.env.JWT_SECRET || '', (err: any, user: any) => {
+      if (err) {
+        console.error('JWT verification error:', err);  // Log the verification error
+        return res.status(403).json({ error: 'Token is invalid or expired' });
+      }
+      req.body.userId = user.id;
+      next();
+    });
+  };
+
 // Endpoint for user registration
 app.post('/api/register', async (req, res) => {
     const { email, password } = req.body;
@@ -89,6 +110,44 @@ app.post('/api/register', async (req, res) => {
     }
   });
 
+
+  // Endpoint for user login
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
+  
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+  
+    const user = await UserAccount.findOne({ email });
+  
+    if (user && await bcrypt.compare(password, user.password)) {
+      const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET || '', { expiresIn: '1h' });
+      res.json({ accessToken, user: { email: user.email } });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials' });
+    }
+  });
+
+  
+  // Endpoint to add user information
+app.post('/api/user-info', authenticateToken, async (req, res) => {
+    const { pulse, temperature } = req.body;
+    const userId = req.body.userId;
+  
+    if (!pulse || !temperature) {
+      return res.status(400).json({ error: 'Pulse and temperature are required' });
+    }
+  
+    try {
+      const userInfo = new UserInfo({ user: userId, pulse, temperature });
+      await userInfo.save();
+      res.status(201).json({ message: 'User information added successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to add user information' });
+    }
+  });
+
 // Function to Call OpenAI API
 async function callOpenAI(prompt: string) {
   try {
@@ -97,7 +156,7 @@ async function callOpenAI(prompt: string) {
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: prompt }
       ],
-      model: 'gpt-3.5-turbo', 
+      model: 'gpt-3.5-turbo-0125:personal::ACVD0E5w', 
     });
 
     return completion.choices[0].message?.content || 'No response';
