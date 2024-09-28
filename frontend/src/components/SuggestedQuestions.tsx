@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+const initialQuestion = 'Analyze my stress levels';
 const additionalQuestions = [
   'Can you suggest a meditation routine?',
   'How can I be less stressed in my next study session',
@@ -18,6 +19,7 @@ const SuggestedQuestions: React.FC<{ onQuestionClick: (question: string) => void
   const handleInitialClick = () => {
     setShowInitialQuestion(false);
     setQuestions(additionalQuestions);
+    onQuestionClick(initialQuestion);
   };
 
   const handleClick = (question: string) => {
@@ -32,7 +34,7 @@ const SuggestedQuestions: React.FC<{ onQuestionClick: (question: string) => void
           style={styles.question} 
           onClick={handleInitialClick}
         >
-          {additionalQuestions}
+          {initialQuestion}
         </div>
       ) : (
         questions.map((question, index) => (

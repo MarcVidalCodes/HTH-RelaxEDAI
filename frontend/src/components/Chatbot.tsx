@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaRobot } from 'react-icons/fa'; // Icons for user and bot
+import { FaUser, FaRobot } from 'react-icons/fa'; 
 import SuggestedQuestions from './SuggestedQuestions';
+import axios from 'axios';
 
 type Message = {
   text: string;
@@ -13,7 +14,7 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedStress && selectedStress !== "Suggested Questions") {
+    if (selectedStress && selectedStress !== "Select a stress to get started") {
       try {
         const stress = JSON.parse(selectedStress);
         const messagesArray = [
@@ -24,7 +25,6 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
         ];
         setMessages(messagesArray);
       } catch (error) {
-        console.error('Error parsing selectedStress:', error);
         setMessages([{ text: 'There was an error processing your stress data.', sender: 'bot' }]);
       }
     }
@@ -37,11 +37,22 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
       setInputText('');
       setLoading(true); 
 
+      const token = localStorage.getItem('token');
+
       try {
-        const botMessage: Message = { text: `Response to ${inputText}`, sender: 'bot' };
+        const response = await axios.post(
+          'http://localhost:5001/api/analyze-stress',
+          { stressData: selectedStress, question: inputText },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+            },
+          }
+        );
+        const botMessage = { text: response.data.analysis, sender: 'bot' };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } catch (error) {
-        console.error('Error processing request:', error);
+        console.error('Error fetching response from backend:', error);
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: 'There was an error processing your request.', sender: 'bot' }
@@ -49,6 +60,7 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
       } finally {
         setLoading(false); 
       }
+
       const chatContainer = document.getElementById('chat-container');
       if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -67,11 +79,22 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setLoading(true); 
 
+    const token = localStorage.getItem('token');
+
     try {
-      const botMessage: Message = { text: `Response to ${question}`, sender: 'bot' };
+      const response = await axios.post(
+        'http://localhost:5001/api/analyze-stress',
+        { stressData: selectedStress, question },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const botMessage = { text: response.data.analysis, sender: 'bot' };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (error) {
-      console.error('Error processing request:', error);
+      console.error('Error fetching response from backend:', error);
       setMessages((prevMessages) => [
         ...prevMessages,
         { text: 'There was an error processing your request.', sender: 'bot' }
@@ -104,16 +127,16 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
     <div style={styles.container}>
       <div style={styles.chatContainer}>
         <div id="chat-container" style={styles.chatMessages}>
-          {}
           {messages.map((message, index) => (
             <MessageBubble key={index} text={message.text} sender={message.sender} />
           ))}
+          {loading && <div style={styles.loading}>Loading...</div>} {/* Loading indicator */}
         </div>
         <SuggestedQuestions onQuestionClick={handleQuestionClick} selectedStress={selectedStress} />
         <div style={styles.chatBar}>
           <input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Chat with Stress AI"
             style={styles.input}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -122,7 +145,7 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
           <button
             onClick={handleSend}
             style={inputText.trim() ? styles.sendButtonActive : styles.sendButton}
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim()} // Disable the button if input is empty
           >
             Send
           </button>
@@ -214,6 +237,10 @@ const styles = {
     marginLeft: '10px',
     marginRight: '10px',
   },
+  loading: {
+    textAlign: 'center',
+    color: '#E2BFD9',
+  }
 };
 
 export default StressChatbot;

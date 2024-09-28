@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaThermometerHalf, FaHeartbeat } from 'react-icons/fa';
 
 interface StressInstanceProps {
@@ -6,17 +6,41 @@ interface StressInstanceProps {
 }
 
 const StressInstance: React.FC<StressInstanceProps> = ({ onSelectStress }) => {
+    const [stress, setStress] = useState<any[]>([]);
     const [selectedStress, setSelectedStress] = useState<string | null>(null);
-
-    const stresses = [
-        { _id: '1', temperature: 98.6, pulse: 72 },
-        { _id: '2', temperature: 99.1, pulse: 75 },
-        { _id: '3', temperature: 97.9, pulse: 70 },
-    ];
+    
+    useEffect(() => {
+        const fetchStressData = async () => {
+            try {
+                const token = localStorage.getItem('token'); 
+                if (!token) {
+                    console.error('No token found');
+                    return;
+                }
+                const response = await fetch('http://localhost:5001/api/stress-data', {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                setStress(data);
+                if (data.length > 0) {
+                    setSelectedStress(data[0]._id);
+                    onSelectStress(JSON.stringify(data[0]));
+                }
+            } catch (error) {
+                console.error('Failed to fetch stress data:', error);
+            }
+        };
+    
+        fetchStressData();
+    }, [onSelectStress]);
 
     const handleStressClick = (stressId: string) => {
         setSelectedStress(stressId);
-        const selected = stresses.find(stress => stress._id === stressId);
+        const selected = stress.find(stress => stress._id === stressId);
         if (selected) {
             onSelectStress(JSON.stringify(selected));
         }
@@ -24,7 +48,7 @@ const StressInstance: React.FC<StressInstanceProps> = ({ onSelectStress }) => {
 
     return (
         <div className="stress-list">
-            {stresses.map((stress, index) => (
+            {stress.map((stress, index) => (
                 <div
                     key={stress._id}
                     className={`card ${selectedStress === stress._id ? 'selected' : ''}`}

@@ -194,12 +194,17 @@ async function callOpenAI(prompt: string) {
   }
 }
 
-// Endpoint to get the stress data
-app.get('/api/stress-data', (req, res) => {
-  res.json(stressData);
+app.get('/api/stress-data', authenticateToken, async (req, res) => {
+  const userId = req.body.userId;
+
+  try {
+    const stressData = await UserInfo.find({ user: userId });
+    res.status(200).json(stressData);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch stress data' });
+  }
 });
 
-// Endpoint to analyze selected stress data
 app.post('/api/analyze-stress', async (req, res) => {
   const { stressData } = req.body;
 
