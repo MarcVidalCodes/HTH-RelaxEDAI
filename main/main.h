@@ -24,6 +24,8 @@
 /* dht22 header files */
 #include "dht22.h"
 
+/* max30102 header files */
+#include "max30102.h"
 
 #define GET_PULSE_TASK_STACK_SIZE                   20000
 #define GET_PULSE_TASK_PRIO                         1

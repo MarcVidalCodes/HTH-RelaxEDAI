@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "HTH-RelaxEDAI",
-    "project_version":    "f2448d2-dirty",
+    "project_version":    "29e46a3-dirty",
     "project_path":       "C:/vscode-esp32-workspace/HTH-RelaxEDAI",
     "idf_path":           "C:/Espressif/frameworks/esp-idf-v5.2.1",
     "build_dir":          "C:/vscode-esp32-workspace/HTH-RelaxEDAI/build",
@@ -805,7 +805,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/vscode-esp32-workspace/HTH-RelaxEDAI/build/esp-idf/main/libmain.a",
-            "sources": [ "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/main.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/bluetooth.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/send_task.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/dht22.c" ],
+            "sources": [ "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/get_pulse.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/main.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/bluetooth.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/send_task.c", "C:/vscode-esp32-workspace/HTH-RelaxEDAI/main/dht22.c" ],
             "include_dirs": [ "." ]
         },
         "mbedtls": {
