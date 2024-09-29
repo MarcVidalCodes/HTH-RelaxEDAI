@@ -12,7 +12,7 @@ const LogoutButton: React.FC = () => {
 
   return (
     <button onClick={handleLogout} style={styles.button}>
-      Logout
+      <span style={styles.text}>Logout</span>
     </button>
   );
 };
@@ -26,6 +26,9 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     transition: 'background-color 0.3s ease',
+  },
+  text: {
+    fontFamily: 'Roboto, sans-serif',
   },
 };
 

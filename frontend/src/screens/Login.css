@@ -162,6 +162,7 @@ code{
 
 .alert {
     text-align: center; 
+    margin-top: 10px; 
 }
 
 .alert.error {
