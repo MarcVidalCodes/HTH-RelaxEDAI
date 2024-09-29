@@ -26,7 +26,7 @@ mongo_client = MongoClient("mongodb://localhost:27017/")
 db = mongo_client["Data"]
 collection = db["Collection1"]
 
-port = 'COM6'  # Will probably change every time idk just check device manager
+port = 'COM6'  # Will probably change every time, just check device manager
 baud_rate = 9600  # ESP32 baud rate (check terminal logs)
 
 # Sends data to MongoDB
@@ -56,9 +56,10 @@ def send_data_to_server(data):
     
     # Prepare the payload
     payload = {
-        "user": "66f0bbbb2a30e0b258f9df45",  # Pass the actual user ObjectId here
+        "user": "66f0bbbb2a30e0b258f9df45",  # Correct MongoDB ObjectId
         "pulse": data.get("pulse"),
-        "temperature": data.get("temperature")
+        "temperature": data.get("temperature"),
+        # "time": data.get("time", str(datetime.now()))  # Include time if necessary
     }
     
     print(f"Sending data to server: {payload}")  # Print payload for debugging
