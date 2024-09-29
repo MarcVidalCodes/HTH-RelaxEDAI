@@ -15,12 +15,11 @@ else:
     load_dotenv(env_file_path)
     print(f".env file loaded from: {env_file_path}")
 
-# Get the access token and user ID from the environment
+# Get the access token from the environment
 access_token = os.getenv('ACCESS_TOKEN')
-user_id = os.getenv('USER_ID')
 
-if not access_token or not user_id:
-    print("Access token or user ID is not available. Skipping server request.")
+if not access_token:
+    print("Access token is not available. Skipping server request.")
 
 # MongoDB setup
 mongo_client = MongoClient("mongodb://localhost:27017/")
@@ -44,8 +43,8 @@ def send_data_to_mongo(data):
     result = collection.insert_one(document)
     print(f"Inserted document ID: {result.inserted_id}")
 
-    # Optionally send data to your server with the access token and user ID
-    if access_token and user_id:
+    # Optionally send data to your server with the access token
+    if access_token:
         send_data_to_server(data)
 
 def send_data_to_server(data):
@@ -57,9 +56,9 @@ def send_data_to_server(data):
     
     # Prepare the payload
     payload = {
-        "user": user_id,  # Use user ID from the .env file
+        "user": "66f0bbbb2a30e0b258f9df45",  # Pass the actual user ObjectId here
         "pulse": data.get("pulse"),
-        "temperature": data.get("temperature"),
+        "temperature": data.get("temperature")
     }
     
     print(f"Sending data to server: {payload}")  # Print payload for debugging
@@ -75,17 +74,18 @@ def send_data_to_server(data):
 
     except Exception as e:
         print(f"Exception occurred while sending data to server: {e}")
+
 try:
-    # establish the serial connection
+    # Establish the serial connection
     ser = serial.Serial(port, baud_rate, timeout=1)
     print(f"Connected to {port}")
 
-    # read data from esp32
+    # Read data from ESP32
     if ser.is_open:
         try:
             while True:
                 pulse, temp = None, None
-                # read data received over bt
+                # Read data received over BT
                 raw_pulse = ser.read(2)
                 if raw_pulse:
                     pulse = int.from_bytes(raw_pulse, byteorder='little')
@@ -96,14 +96,14 @@ try:
                     temp = int.from_bytes(raw_temp, byteorder='little')
                     print(temp)
 
-                time.sleep(0.5) # delay for 0.5s somehow makes it work i honestly dont know why
+                time.sleep(0.5)  # Delay for 0.5s
                 
                 if pulse is not None and temp is not None:
-                    # create a data object to store pulse and temperature
+                    # Create a data object to store pulse and temperature
                     data_to_send = {
-                        "id": str(datetime.now().timestamp()),  # unique ID using timestamp
-                        "pulse": pulse,  # first 2-byte set is pulse
-                        "temperature": temp  # second 2-byte set is temperature
+                        "id": str(datetime.now().timestamp()),  # Unique ID using timestamp
+                        "pulse": pulse,  # First 2-byte set is pulse
+                        "temperature": temp  # Second 2-byte set is temperature
                     }
                     print(f"Received data: {data_to_send}")
 
