@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaRobot } from 'react-icons/fa'; // Icons for user and bot
 import SuggestedQuestions from './SuggestedQuestions';
+import axios from 'axios';
 
 type Message = {
   text: string;
@@ -13,7 +14,7 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (selectedStress && selectedStress !== "Suggested Questions") {
+    if (selectedStress && selectedStress !== "Select a stress to get started") {
       try {
         const stress = JSON.parse(selectedStress);
         const messagesArray = [
@@ -37,11 +38,22 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
       setInputText('');
       setLoading(true); 
 
+      const token = localStorage.getItem('token');
+
       try {
-        const botMessage: Message = { text: `Response to ${inputText}`, sender: 'bot' };
+        const response = await axios.post(
+          'http://localhost:5001/api/analyze-stress',
+          { stressData: selectedStress, question: inputText },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+            },
+          }
+        );
+        const botMessage = { text: response.data.analysis, sender: 'bot' };
         setMessages((prevMessages) => [...prevMessages, botMessage]);
       } catch (error) {
-        console.error('Error processing request:', error);
+        console.error('Error fetching response from backend:', error);
         setMessages((prevMessages) => [
           ...prevMessages,
           { text: 'There was an error processing your request.', sender: 'bot' }
@@ -67,8 +79,20 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
     const userMessage: Message = { text: question, sender: 'user' };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setLoading(true); 
+
+    const token = localStorage.getItem('token');
+
     try {
-      const botMessage: Message = { text: `Response to ${question}`, sender: 'bot' };
+      const response = await axios.post(
+        'http://localhost:5001/api/analyze-stress',
+        { stressData: selectedStress, question },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        }
+      );
+      const botMessage = { text: response.data.analysis, sender: 'bot' };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (error) {
       console.error('Error processing request:', error);
@@ -104,10 +128,10 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
     <div style={styles.container}>
       <div style={styles.chatContainer}>
         <div id="chat-container" style={styles.chatMessages}>
-          {/* Display all messages */}
           {messages.map((message, index) => (
             <MessageBubble key={index} text={message.text} sender={message.sender} />
           ))}
+          {loading && <div style={styles.loading}>Loading...</div>} {}
         </div>
         <SuggestedQuestions onQuestionClick={handleQuestionClick} selectedStress={selectedStress} />
         <div style={styles.chatBar}>
@@ -135,15 +159,15 @@ const StressChatbot: React.FC<{ selectedStress: string }> = ({ selectedStress })
 const styles = {
   container: {
     backgroundColor: '#212121',
-    width: '100%', // Make it take full width
+    width: '100%', 
     height: '100vh',
     display: 'flex',
-    justifyContent: 'center', // Center the chat container horizontally
+    justifyContent: 'center', 
   },
   chatContainer: {
     display: 'flex',
     flexDirection: 'column' as const,
-    width: '75%', // Adjust width for the main chat
+    width: '75%', 
     height: '100%',
     justifyContent: 'space-between',
   },
@@ -202,6 +226,7 @@ const styles = {
     padding: '10px 20px',
     cursor: 'pointer',
     fontSize: '16px',
+    transition: 'background-color 0.3s',
   },
   icon: {
     display: 'flex',
@@ -213,6 +238,10 @@ const styles = {
     borderRadius: '50%',
     marginLeft: '10px',
     marginRight: '10px',
+  },
+  loading: {
+    textAlign: 'center',
+    color: '#E2BFD9',
   },
 };
 
