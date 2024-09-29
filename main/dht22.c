@@ -238,8 +238,10 @@ void temp_task_handler(void *parameters)
 
 		errorHandler(ret);
 
-		printf("Hum %.1f\n", getHumidity());
+		//printf("Hum %.1f\n", getHumidity());
 		printf("Tmp %.1f\n", getTemperature());
+		uint32_t temp = 5;
+		xQueueSend(temp_queue, &temp, portMAX_DELAY);
 
 		// Wait at least 2 seconds before reading again
 		// The interval of the whole process must be more than 2 seconds

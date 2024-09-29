@@ -197,18 +197,18 @@ void max30102_read_fifo(i2c_master_dev_handle_t *dev_handle){
     uint8_t reset = 0x00;
     uint8_t rd_ptr = 0, wr_ptr = 0;
 
-    // max30102_read(dev_handle, MAX30102_FIFO_WR_PTR, &wr_ptr, 1);
-    // max30102_read(dev_handle, MAX30102_FIFO_RD_PTR, &rd_ptr, 1);
-
-    // printf("wr_ptr: %d, rd_ptr: %d\n", wr_ptr, rd_ptr);
-
-    /* get FIFO_WR_PTR */
-    /* read number of samples to read from the FIFO */
     uint8_t sample[6];
     max30102_read(dev_handle, MAX30102_FIFO_DATA, sample, 6);
-    uint32_t ir_sample = ((uint32_t) (sample[0] << 16) | (uint32_t) (sample[1] << 8) | (uint32_t) (sample[2])) & 0x3ffff;
+    uint32_t ir_sample = ((uint32_t) (sample[3] << 16) | (uint32_t) (sample[4] << 8) | (uint32_t) (sample[5])) & 0x3ffff;
         
     printf("\navg reading: %ld\n", ir_sample);
+
+    ir_sample = 5;
+
+    xQueueSend(pulse_queue, &ir_sample, portMAX_DELAY); // send to queue
+
+    printf("sent");
+
     max30102_clear_fifo(dev_handle);
 }
 

@@ -13,6 +13,7 @@
 #include "esp_err.h"
 #include "esp_system.h"
 #include "driver/gpio.h"
+#include "freertos/queue.h"
 
 /* bluetooth header files */
 #include "esp_bt.h"
