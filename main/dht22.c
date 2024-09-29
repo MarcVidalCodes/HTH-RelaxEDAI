@@ -240,11 +240,11 @@ void temp_task_handler(void *parameters)
 
 		//printf("Hum %.1f\n", getHumidity());
 		printf("Tmp %.1f\n", getTemperature());
-		uint32_t temp = 5;
+		uint32_t temp = (uint32_t) getTemperature();
 		xQueueSend(temp_queue, &temp, portMAX_DELAY);
 
 		// Wait at least 2 seconds before reading again
 		// The interval of the whole process must be more than 2 seconds
-		vTaskDelay(pdMS_TO_TICKS(4000)); // block for 4 seconds
+		vTaskDelay(pdMS_TO_TICKS(5000)); // block for 5 seconds
 	}
 }

@@ -14,12 +14,12 @@ void app_main(void)
     bt_init();
 
     pulse_queue = xQueueCreate(1, 4);
-    //temp_queue = xQueueCreate(1, 4);
+    temp_queue = xQueueCreate(1, 4);
 
 
     configASSERT(xTaskCreate(send_task_handler, "Send_Task", SEND_TASK_STACK_SIZE, NULL, SEND_TASK_PRIO, &send_task) == pdPASS);
     configASSERT(xTaskCreate(get_pulse_handler, "Get_Pulse_Task", GET_PULSE_TASK_STACK_SIZE, NULL, GET_PULSE_TASK_PRIO, &get_pulse_task) == pdPASS);
-    //configASSERT(xTaskCreate(temp_task_handler, "DHT22_Task", DHT22_TASK_STACK_SIZE, NULL, DHT22_TASK_PRIO, &dht22_task) == pdPASS);
+    configASSERT(xTaskCreate(temp_task_handler, "DHT22_Task", DHT22_TASK_STACK_SIZE, NULL, DHT22_TASK_PRIO, &dht22_task) == pdPASS);
 
     vTaskSuspend(send_task); // suspend send task until bluetooth connection is opened
 }

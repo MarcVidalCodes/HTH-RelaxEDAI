@@ -13,9 +13,7 @@ void send_task_handler(void *parameters){
     while(1)
     {
         xQueueReceive(pulse_queue, &data[0], portMAX_DELAY);
-        //configASSERT(xQueueReceive(temp_queue, &data[1], portMAX_DELAY));
-        printf("pulse from queue: %ld", data[0]);
-        printf("temp from queue: %ld", data[1]);
+        xQueueReceive(temp_queue, &data[1], portMAX_DELAY);
         for (uint8_t i = 0; i < 2; i++){
             esp_spp_write(bt_handle, 2, &data[i]);
             data[i]++;

@@ -203,11 +203,9 @@ void max30102_read_fifo(i2c_master_dev_handle_t *dev_handle){
         
     printf("\navg reading: %ld\n", ir_sample);
 
-    ir_sample = 5;
+    uint32_t pulse = ir_sample / 2375;
 
-    xQueueSend(pulse_queue, &ir_sample, portMAX_DELAY); // send to queue
-
-    printf("sent");
+    xQueueSend(pulse_queue, &pulse, portMAX_DELAY); // send to queue
 
     max30102_clear_fifo(dev_handle);
 }
